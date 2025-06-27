@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WBS202506b - 月次請求・入金処理自動化</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .control-panel {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .progress-container {
+            margin: 20px 0;
+            display: none;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .status {
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .logs-container {
+            margin-top: 30px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .logs-header {
+            background: #343a40;
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+        }
+        .logs-content {
+            height: 400px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+        .log-timestamp {
+            color: #6c757d;
+            font-size: 12px;
+        }
+        .log-message {
+            color: #333;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .success {
+            color: #28a745;
+        }
+        .info {
+            color: #17a2b8;
+        }
+        .step-progress {
+            color: #6f42c1;
+            font-weight: bold;
+        }
+        .project-progress {
+            color: #fd7e14;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WBS202506b - 月次請求・入金処理自動化</h1>
+        
+        <div class="control-panel">
+            <div style="margin-bottom: 20px;">
+                <label for="batchType" style="font-weight: bold; margin-right: 10px;">バッチ種別:</label>
+                <select id="batchType" style="padding: 8px; border-radius: 5px; border: 1px solid #ccc;">
+                    <option value="invoice">📄 請求書生成</option>
+                    <option value="matching">💰 入金マッチング</option>
+                </select>
+            </div>
+            
+            <button id="startBtn" class="btn" onclick="startBatch()">
+                🚀 AIバッチ実行を開始
+            </button>
+            
+            <div class="progress-container" id="progressContainer">
+                <div class="status" id="statusText">準備中...</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="status" id="progressText">0%</div>
+                <div class="current-step" id="currentStepText" style="margin-top: 10px; font-size: 14px; color: #666;"></div>
+            </div>
+        </div>
+        
+        <!-- エラー表示エリア -->
+        <div id="error-area" class="alert alert-danger" style="display: none;">
+            <h5>❌ エラーが発生しました</h5>
+            <div id="error-message"></div>
+            <div id="error-details" class="mt-2" style="display: none;">
+                <h6>詳細情報:</h6>
+                <pre id="error-traceback" class="bg-light p-2 rounded" style="font-size: 11px; max-height: 200px; overflow-y: auto;"></pre>
+            </div>
+            <div class="mt-2">
+                <button class="btn btn-sm btn-outline-danger" onclick="toggleErrorDetails()">詳細情報の表示/非表示</button>
+            </div>
+        </div>
+
+        <!-- 実行ログエリア -->
+        <div class="card mt-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">📋 実行ログ</h5>
+                <button class="btn btn-sm btn-outline-secondary" onclick="clearLogs()">📋 実行ログクリア</button>
+            </div>
+            <div class="card-body">
+                <div id="log-container" class="bg-dark text-light p-3 rounded" style="height: 400px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 12px;">
+                    <div class="text-muted">システム準備完了 Web UIが起動しました。バッチ実行ボタンをクリックして処理を開始してください。</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isRunning = false;
+        let statusInterval;
+
+        function startBatch() {
+            if (isRunning) return;
+            
+            const batchType = document.getElementById('batchType').value;
+            const batchName = batchType === 'invoice' ? '請求書生成' : '入金マッチング';
+            
+            fetch('/api/start-batch', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    batch_type: batchType
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    addLog('エラー', data.error, 'error');
+                } else {
+                    addLog('情報', data.message, 'info');
+                    isRunning = true;
+                    document.getElementById('startBtn').disabled = true;
+                    document.getElementById('startBtn').textContent = `🔄 ${batchName}実行中...`;
+                    document.getElementById('progressContainer').style.display = 'block';
+                    
+                    // Start polling for status
+                    statusInterval = setInterval(pollStatus, 1000);
+                }
+            })
+            .catch(error => {
+                addLog('エラー', 'バッチ開始に失敗しました: ' + error, 'error');
+            });
+        }
+
+        function pollStatus() {
+            fetch('/api/status')
+            .then(response => response.json())
+            .then(data => {
+                updateProgress(data.progress);
+                updateStatus(data.is_running, data.error);
+                updateCurrentStep(data.current_step);
+                
+                // Update logs with detailed information
+                if (data.logs && data.logs.length > 0) {
+                    const logContainer = document.getElementById('log-container');
+                    logContainer.innerHTML = '';
+                    
+                    data.logs.forEach(log => {
+                        const logEntry = document.createElement('div');
+                        const timestamp = new Date(log.timestamp).toLocaleTimeString();
+                        
+                        // Color code different types of messages
+                        let cssClass = 'text-light';
+                        if (log.message.includes('❌') || log.message.includes('エラー')) {
+                            cssClass = 'text-danger';
+                        } else if (log.message.includes('✅') || log.message.includes('完了')) {
+                            cssClass = 'text-success';
+                        } else if (log.message.includes('⚠️') || log.message.includes('警告')) {
+                            cssClass = 'text-warning';
+                        } else if (log.message.includes('📊') || log.message.includes('統計')) {
+                            cssClass = 'text-info';
+                        } else if (log.message.includes('実行コマンド:') || log.message.includes('プロセス終了コード:')) {
+                            cssClass = 'text-muted';
+                        }
+                        
+                        logEntry.innerHTML = `<span class="text-muted">[${timestamp}]</span> <span class="${cssClass}">${log.message}</span>`;
+                        logContainer.appendChild(logEntry);
+                    });
+                    
+                    // Auto-scroll to bottom
+                    logContainer.scrollTop = logContainer.scrollHeight;
+                }
+                
+                // Handle errors with detailed information
+                if (data.error) {
+                    const errorArea = document.getElementById('error-area');
+                    const errorMessage = document.getElementById('error-message');
+                    const errorDetails = document.getElementById('error-details');
+                    const errorTraceback = document.getElementById('error-traceback');
+                    
+                    errorMessage.textContent = data.error;
+                    errorArea.style.display = 'block';
+                    
+                    // Check if there's detailed error information in logs
+                    const detailedLogs = data.logs.filter(log => 
+                        log.message.includes('詳細:') || 
+                        log.message.includes('トレースバック:') ||
+                        log.message.includes('stderr') ||
+                        log.message.includes('プロセス終了コード:')
+                    );
+                    
+                    if (detailedLogs.length > 0) {
+                        errorDetails.style.display = 'block';
+                        errorTraceback.textContent = detailedLogs.map(log => log.message).join('\n');
+                    }
+                } else {
+                    document.getElementById('error-area').style.display = 'none';
+                }
+                
+                if (!data.is_running) {
+                    // Execution finished
+                    clearInterval(statusInterval);
+                    isRunning = false;
+                    document.getElementById('startBtn').disabled = false;
+                    document.getElementById('startBtn').textContent = '🚀 AIバッチ実行を開始';
+                    
+                    if (data.error) {
+                        addLog('エラー', data.error, 'error');
+                    } else {
+                        addLog('成功', 'バッチ処理が完了しました', 'success');
+                    }
+                }
+            })
+            .catch(error => {
+                addLog('エラー', 'ステータス取得に失敗しました: ' + error, 'error');
+            });
+        }
+
+        function updateProgress(progress) {
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressText').textContent = progress + '%';
+        }
+
+        function updateStatus(isRunning, error) {
+            let statusText = isRunning ? '実行中...' : '完了';
+            if (error) statusText = 'エラー';
+            document.getElementById('statusText').textContent = statusText;
+        }
+
+        function updateCurrentStep(currentStep) {
+            if (currentStep) {
+                document.getElementById('currentStepText').textContent = `現在の処理: ${currentStep}`;
+            }
+        }
+
+        function addLog(type, message, cssClass) {
+            const logsContent = document.getElementById('log-container');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            // Check if this is a CLI-style progress message
+            let displayMessage = message;
+            let logClass = cssClass;
+            
+            if (message.startsWith('===')) {
+                // Header message
+                logClass = 'info';
+                displayMessage = message;
+            } else if (message.startsWith('[') && message.includes(']')) {
+                // Step progress message
+                logClass = 'step-progress';
+                displayMessage = message;
+            } else if (message.startsWith('  - [')) {
+                // Individual project progress
+                logClass = 'project-progress';
+                displayMessage = message;
+            } else if (message.includes('Generated:') || message.includes('Saved:') || message.includes('Email sent')) {
+                // Success messages
+                logClass = 'success';
+                displayMessage = message;
+            } else if (message.includes('❌') || message.includes('エラー')) {
+                // Error messages
+                logClass = 'error';
+                displayMessage = message;
+            }
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `
+                <span class="log-timestamp">[${timestamp}]</span>
+                <span class="log-message ${logClass}">${displayMessage}</span>
+            `;
+            
+            logsContent.appendChild(logEntry);
+            logsContent.scrollTop = logsContent.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('log-container').innerHTML = `
+                <div class="text-muted">ログがクリアされました。</div>
+            `;
+        }
+
+        function toggleErrorDetails() {
+            const errorDetails = document.getElementById('error-details');
+            if (errorDetails.style.display === 'none') {
+                errorDetails.style.display = 'block';
+            } else {
+                errorDetails.style.display = 'none';
+            }
+        }
+
+        // Auto-scroll logs to bottom
+        const logsContent = document.getElementById('log-container');
+        logsContent.scrollTop = logsContent.scrollHeight;
+    </script>
+</body>
+</html> 

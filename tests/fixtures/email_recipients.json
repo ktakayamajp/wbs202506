@@ -1,0 +1,46 @@
+{
+  "recipients": {
+    "PRJ_0001": [
+      {
+        "email": "test@example.com",
+        "name": "テスト太郎",
+        "company": "テスト株式会社"
+      }
+    ],
+    "PRJ_0002": [
+      {
+        "email": "test2@example.com",
+        "name": "テスト花子",
+        "company": "テスト株式会社"
+      }
+    ],
+    "PRJ_INTEGRATION_TEST": [
+      {
+        "email": "integration@example.com",
+        "name": "統合テスト太郎",
+        "company": "統合テスト株式会社"
+      }
+    ],
+    "PRJ_APPROVAL_TEST": [
+      {
+        "email": "approval@example.com",
+        "name": "承認テスト太郎",
+        "company": "承認テスト株式会社"
+      }
+    ]
+  },
+  "cc_recipients": [
+    {
+      "email": "cc@example.com",
+      "name": "CC受信者",
+      "company": "テスト株式会社"
+    }
+  ],
+  "bcc_recipients": [
+    {
+      "email": "bcc@example.com",
+      "name": "BCC受信者",
+      "company": "テスト株式会社"
+    }
+  ]
+} 

@@ -1,0 +1,332 @@
+/* 請求書スタイルシート */
+
+/* 基本設定 */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #ffffff;
+    color: #333333;
+    line-height: 1.6;
+}
+
+/* コンテナ */
+.invoice-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    padding: 30px;
+    border-radius: 8px;
+}
+
+/* ヘッダー */
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #2c3e50;
+    padding-bottom: 20px;
+}
+
+.company-logo {
+    max-width: 200px;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+.company-name {
+    font-size: 24px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.company-info {
+    font-size: 12px;
+    color: #666666;
+    line-height: 1.4;
+}
+
+/* 請求書タイトル */
+.invoice-title {
+    font-size: 28px;
+    font-weight: bold;
+    color: #2c3e50;
+    text-align: center;
+    margin: 30px 0;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+/* 請求書詳細 */
+.invoice-details {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    gap: 20px;
+}
+
+.invoice-info {
+    flex: 1;
+}
+
+.client-info {
+    flex: 1;
+    text-align: right;
+}
+
+.info-row {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.info-label {
+    font-weight: bold;
+    color: #2c3e50;
+    min-width: 80px;
+    display: inline-block;
+}
+
+.info-value {
+    color: #333333;
+    margin-left: 10px;
+}
+
+/* プロジェクト詳細 */
+.project-details {
+    margin: 30px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.project-header {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: white;
+    padding: 15px;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.project-content {
+    padding: 20px;
+}
+
+.project-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    align-items: center;
+}
+
+.project-row:last-child {
+    border-bottom: none;
+    font-weight: bold;
+    font-size: 16px;
+    color: #2c3e50;
+    background-color: #f8f9fa;
+    padding: 12px 0;
+    border-radius: 4px;
+}
+
+/* 金額セクション */
+.amount-section {
+    margin: 30px 0;
+    text-align: right;
+}
+
+.total-amount {
+    font-size: 24px;
+    font-weight: bold;
+    color: #e74c3c;
+    border: 2px solid #e74c3c;
+    padding: 15px 25px;
+    border-radius: 5px;
+    display: inline-block;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
+    box-shadow: 0 2px 4px rgba(231, 76, 60, 0.2);
+}
+
+/* 支払い情報 */
+.payment-info {
+    margin: 30px 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 5px;
+    border-left: 4px solid #2c3e50;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.payment-title {
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.payment-details {
+    line-height: 1.6;
+    color: #555555;
+}
+
+/* フッター */
+.footer {
+    margin-top: 40px;
+    text-align: center;
+    font-size: 12px;
+    color: #666666;
+    border-top: 1px solid #ddd;
+    padding-top: 20px;
+}
+
+.footer p {
+    margin: 5px 0;
+}
+
+/* ページ区切り */
+.page-break {
+    page-break-before: always;
+}
+
+/* 印刷用スタイル */
+@media print {
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: white;
+    }
+    
+    .invoice-container {
+        box-shadow: none;
+        padding: 20px;
+        max-width: none;
+    }
+    
+    .header {
+        border-bottom-color: #000;
+    }
+    
+    .project-header {
+        background: #2c3e50 !important;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+    }
+    
+    .total-amount {
+        background: #fff5f5 !important;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+    }
+    
+    .payment-info {
+        background: #f8f9fa !important;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+    }
+    
+    .project-row:last-child {
+        background-color: #f8f9fa !important;
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+    }
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 768px) {
+    .invoice-details {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .client-info {
+        text-align: left;
+    }
+    
+    .project-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .invoice-container {
+        padding: 15px;
+        margin: 10px;
+    }
+    
+    .total-amount {
+        font-size: 20px;
+        padding: 12px 20px;
+    }
+}
+
+/* アニメーション（Web表示時のみ） */
+@media screen {
+    .invoice-container {
+        transition: box-shadow 0.3s ease;
+    }
+    
+    .invoice-container:hover {
+        box-shadow: 0 0 20px rgba(0,0,0,0.15);
+    }
+    
+    .project-details {
+        transition: box-shadow 0.3s ease;
+    }
+    
+    .project-details:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    .payment-info {
+        transition: transform 0.2s ease;
+    }
+    
+    .payment-info:hover {
+        transform: translateX(5px);
+    }
+}
+
+/* アクセシビリティ */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ダークモード対応 */
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #1a1a1a;
+        color: #ffffff;
+    }
+    
+    .invoice-container {
+        background-color: #2d2d2d;
+        color: #ffffff;
+    }
+    
+    .info-value {
+        color: #ffffff;
+    }
+    
+    .project-details {
+        border-color: #444;
+    }
+    
+    .project-row {
+        border-bottom-color: #444;
+    }
+    
+    .payment-info {
+        background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+    }
+} 

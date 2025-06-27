@@ -1,0 +1,4 @@
+Invoice_ID,Project_ID,Client_Name,Project_Name,Billing_Amount,Billing_Period,Due_Date,Work_Description,Notes,PM_Name,Status
+INV_202401_001,PRJ_0001,テスト株式会社,テストプロジェクト,100000,2025年6月,2025年7月22日,テスト用システム開発業務,これはテスト用の請求書です。,テスト太郎,pending_approval
+INV_202401_002,PRJ_0002,テスト株式会社2,テストプロジェクト2,200000,2025年6月,2025年7月22日,テスト用システム開発業務2,これはテスト用の請求書2です。,テスト花子,pending_approval
+INV_202401_003,PRJ_0003,テスト株式会社3,テストプロジェクト3,150000,2025年6月,2025年7月22日,テスト用システム開発業務3,これはテスト用の請求書3です。,テスト三郎,pending_approval 

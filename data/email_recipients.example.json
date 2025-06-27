@@ -1,0 +1,38 @@
+{
+  "default_recipients": [
+    {
+      "email": "kanji.takayama@gmail.com",
+      "name": "デフォルト受信者",
+      "company": "デフォルト株式会社"
+    }
+  ],
+  "project_specific_recipients": {
+    "PRJ_0001": [
+      {
+        "email": "kanji.takayama@gmail.com",
+        "name": "クライアント1",
+        "company": "クライアント1株式会社"
+      }
+    ]
+  },
+  "cc_recipients": [
+    {
+      "email": "kanji.takayama@gmail.com",
+      "name": "CC受信者",
+      "company": "CC株式会社"
+    }
+  ],
+  "bcc_recipients": [
+    {
+      "email": "kanji.takayama@gmail.com",
+      "name": "BCC受信者",
+      "company": "BCC株式会社"
+    }
+  ],
+  "settings": {
+    "use_project_specific": true,
+    "fallback_to_default": true,
+    "include_cc": true,
+    "include_bcc": false
+  }
+} 

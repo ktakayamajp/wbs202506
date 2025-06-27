@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>請求書 - {{ invoice_data.client_name }}</title>
+    <style>
+        /* インラインスタイル（PDF生成用） */
+        body {
+            font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #ffffff;
+            color: #333333;
+        }
+        
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 20px;
+        }
+        
+        .company-logo {
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        
+        .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .company-info {
+            font-size: 12px;
+            color: #666666;
+            line-height: 1.4;
+        }
+        
+        .invoice-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .invoice-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        
+        .invoice-info {
+            flex: 1;
+        }
+        
+        .client-info {
+            flex: 1;
+            text-align: right;
+        }
+        
+        .info-row {
+            margin-bottom: 8px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #2c3e50;
+            min-width: 80px;
+            display: inline-block;
+        }
+        
+        .info-value {
+            color: #333333;
+        }
+        
+        .project-details {
+            margin: 30px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .project-header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+        }
+        
+        .project-content {
+            padding: 20px;
+        }
+        
+        .project-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .project-row:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            font-size: 16px;
+            color: #2c3e50;
+        }
+        
+        .amount-section {
+            margin: 30px 0;
+            text-align: right;
+        }
+        
+        .total-amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e74c3c;
+            border: 2px solid #e74c3c;
+            padding: 15px 25px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        
+        .payment-info {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #2c3e50;
+        }
+        
+        .payment-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .payment-details {
+            line-height: 1.6;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 12px;
+            color: #666666;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        
+        .page-break {
+            page-break-before: always;
+        }
+        
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            
+            .invoice-container {
+                box-shadow: none;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <!-- ヘッダー -->
+        <div class="header">
+            {% if company_logo %}
+            <img src="{{ company_logo }}" alt="会社ロゴ" class="company-logo">
+            {% endif %}
+            <div class="company-name">{{ company_name }}</div>
+            <div class="company-info">
+                {{ company_address }}<br>
+                TEL: {{ company_phone }} | FAX: {{ company_fax }}<br>
+                Email: {{ company_email }}
+            </div>
+        </div>
+        
+        <!-- 請求書タイトル -->
+        <div class="invoice-title">請求書</div>
+        
+        <!-- 請求書詳細 -->
+        <div class="invoice-details">
+            <div class="invoice-info">
+                <div class="info-row">
+                    <span class="info-label">請求書番号:</span>
+                    <span class="info-value">{{ invoice_data.invoice_number }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">発行日:</span>
+                    <span class="info-value">{{ invoice_data.issue_date }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">支払期限:</span>
+                    <span class="info-value">{{ invoice_data.due_date }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">担当者:</span>
+                    <span class="info-value">{{ invoice_data.pm_name }}</span>
+                </div>
+            </div>
+            
+            <div class="client-info">
+                <div class="info-row">
+                    <span class="info-label">お客様:</span>
+                    <span class="info-value">{{ invoice_data.client_name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">プロジェクト:</span>
+                    <span class="info-value">{{ invoice_data.project_name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">プロジェクトID:</span>
+                    <span class="info-value">{{ invoice_data.project_id }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">請求期間:</span>
+                    <span class="info-value">{{ invoice_data.billing_period }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- プロジェクト詳細 -->
+        <div class="project-details">
+            <div class="project-header">請求内容</div>
+            <div class="project-content">
+                <div class="project-row">
+                    <span>プロジェクト名</span>
+                    <span>{{ invoice_data.project_name }}</span>
+                </div>
+                <div class="project-row">
+                    <span>作業内容</span>
+                    <span>{{ invoice_data.work_description }}</span>
+                </div>
+                <div class="project-row">
+                    <span>請求期間</span>
+                    <span>{{ invoice_data.billing_period }}</span>
+                </div>
+                <div class="project-row">
+                    <span>請求金額</span>
+                    <span>¥{{ "{:,}".format(invoice_data.billing_amount|int) }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 金額セクション -->
+        <div class="amount-section">
+            <div class="total-amount">
+                ご請求金額: ¥{{ "{:,}".format(invoice_data.billing_amount|int) }}
+            </div>
+        </div>
+        
+        <!-- 支払い情報 -->
+        <div class="payment-info">
+            <div class="payment-title">お支払い方法</div>
+            <div class="payment-details">
+                銀行振込にてお支払いください。<br>
+                <strong>振込先:</strong> {{ bank_account_info }}<br>
+                <strong>支払期限:</strong> {{ invoice_data.due_date }}まで
+            </div>
+        </div>
+        
+        <!-- 備考 -->
+        {% if invoice_data.notes %}
+        <div class="payment-info">
+            <div class="payment-title">備考</div>
+            <div class="payment-details">
+                {{ invoice_data.notes }}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- フッター -->
+        <div class="footer">
+            <p>ご不明な点がございましたら、お気軽にお問い合わせください。</p>
+            <p>{{ company_name }} | {{ company_address }} | TEL: {{ company_phone }}</p>
+        </div>
+    </div>
+</body>
+</html> 

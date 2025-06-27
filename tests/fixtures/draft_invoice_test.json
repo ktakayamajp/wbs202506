@@ -1,0 +1,28 @@
+[
+  {
+    "invoice_id": "INV_TEST_001",
+    "project_id": "PRJ_0001",
+    "client_name": "テスト株式会社",
+    "project_name": "テストプロジェクト",
+    "billing_amount": 100000,
+    "billing_period": "2025年6月",
+    "due_date": "2025年7月22日",
+    "work_description": "テスト用システム開発業務",
+    "notes": "これはテスト用の請求書です。",
+    "pm_name": "テスト太郎",
+    "status": "pending_approval"
+  },
+  {
+    "invoice_id": "INV_TEST_002",
+    "project_id": "PRJ_0002",
+    "client_name": "テスト株式会社2",
+    "project_name": "テストプロジェクト2",
+    "billing_amount": 200000,
+    "billing_period": "2025年6月",
+    "due_date": "2025年7月22日",
+    "work_description": "テスト用システム開発業務2",
+    "notes": "これはテスト用の請求書2です。",
+    "pm_name": "テスト花子",
+    "status": "pending_approval"
+  }
+] 
