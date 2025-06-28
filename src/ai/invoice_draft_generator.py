@@ -28,14 +28,53 @@ class InvoiceDraftGenerator:
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
         ]
-        response = self.client.chat(messages)
-        # レスポンスからJSON部分を抽出
-        content = response["choices"][0]["message"]["content"]
+        
         try:
-            # 余計なテキストが混じる場合も考慮
-            json_start = content.find('{')
-            json_end = content.rfind('}') + 1
-            json_str = content[json_start:json_end]
-            return json.loads(json_str)
-        except Exception:
-            return {"work_description": "AI出力パース失敗", "notes": content}
+            response = self.client.chat(messages)
+            
+            # レスポンスの構造を確認
+            if not isinstance(response, dict):
+                print(f"予期しないレスポンス形式: {type(response)}")
+                return {"work_description": "APIレスポンス形式エラー", "notes": str(response)}
+            
+            # choicesキーの存在を確認
+            if "choices" not in response:
+                print(f"APIレスポンスにchoicesキーがありません: {response}")
+                return {"work_description": "APIレスポンスエラー", "notes": str(response)}
+            
+            if not response["choices"] or len(response["choices"]) == 0:
+                print("APIレスポンスのchoicesが空です")
+                return {"work_description": "APIレスポンスが空", "notes": "choicesが空です"}
+            
+            # メッセージの存在を確認
+            if "message" not in response["choices"][0]:
+                print(f"APIレスポンスにmessageキーがありません: {response['choices'][0]}")
+                return {"work_description": "APIレスポンスエラー", "notes": "messageキーがありません"}
+            
+            # コンテンツの存在を確認
+            if "content" not in response["choices"][0]["message"]:
+                print(f"APIレスポンスにcontentキーがありません: {response['choices'][0]['message']}")
+                return {"work_description": "APIレスポンスエラー", "notes": "contentキーがありません"}
+            
+            content = response["choices"][0]["message"]["content"]
+            
+            try:
+                # 余計なテキストが混じる場合も考慮
+                json_start = content.find('{')
+                json_end = content.rfind('}') + 1
+                if json_start == -1 or json_end == 0:
+                    print(f"JSONが見つかりません: {content}")
+                    return {"work_description": "JSONパース失敗", "notes": content}
+                
+                json_str = content[json_start:json_end]
+                return json.loads(json_str)
+            except json.JSONDecodeError as e:
+                print(f"JSONデコードエラー: {e}, コンテンツ: {content}")
+                return {"work_description": "JSONデコード失敗", "notes": content}
+            except Exception as e:
+                print(f"予期しないエラー: {e}, コンテンツ: {content}")
+                return {"work_description": "予期しないエラー", "notes": content}
+                
+        except Exception as e:
+            print(f"API呼び出しエラー: {e}")
+            return {"work_description": "API呼び出し失敗", "notes": str(e)}

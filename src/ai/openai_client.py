@@ -1,4 +1,5 @@
 import requests
+import json
 from config.settings import settings
 
 
@@ -27,11 +28,42 @@ class OpenAIClient:
             "temperature": temperature,
             "max_tokens": max_tokens
         }
-        response = requests.post(
-            f"{self.base_url}/chat/completions",
-            headers=headers,
-            json=payload,
-            timeout=60
-        )
-        response.raise_for_status()
-        return response.json()
+        
+        try:
+            response = requests.post(
+                f"{self.base_url}/chat/completions",
+                headers=headers,
+                json=payload,
+                timeout=60
+            )
+            
+            # HTTPエラーの確認
+            response.raise_for_status()
+            
+            # JSONレスポンスの解析
+            try:
+                response_data = response.json()
+            except json.JSONDecodeError as e:
+                print(f"JSONデコードエラー: {e}")
+                print(f"レスポンス内容: {response.text}")
+                raise Exception(f"APIレスポンスのJSON解析に失敗: {e}")
+            
+            # レスポンスの基本構造を確認
+            if not isinstance(response_data, dict):
+                raise Exception(f"予期しないレスポンス形式: {type(response_data)}")
+            
+            # エラーレスポンスの確認
+            if "error" in response_data:
+                error_msg = response_data["error"]
+                if isinstance(error_msg, dict):
+                    error_msg = error_msg.get("message", str(error_msg))
+                raise Exception(f"APIエラー: {error_msg}")
+            
+            return response_data
+            
+        except requests.exceptions.RequestException as e:
+            print(f"HTTPリクエストエラー: {e}")
+            raise Exception(f"API呼び出しに失敗: {e}")
+        except Exception as e:
+            print(f"予期しないエラー: {e}")
+            raise

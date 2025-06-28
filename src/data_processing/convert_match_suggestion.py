@@ -35,6 +35,7 @@ class MatchSuggestionConverter:
         self.csv_file_path = csv_file_path
         self.invoice_file_path = invoice_file_path
         self.client_mapping = {}
+        self.client_name_to_projects = {}  # 追加: client_name→project_idリスト
 
     def load_invoice_data(self) -> Dict[str, str]:
         """
@@ -52,12 +53,17 @@ class MatchSuggestionConverter:
                 invoices = json.load(f)
 
             mapping = {}
+            client_name_to_projects = {}
             for invoice in invoices:
                 project_id = invoice.get('project_id')
                 client_name = invoice.get('client_name')
                 if project_id and client_name:
                     mapping[project_id] = client_name
+                    if client_name not in client_name_to_projects:
+                        client_name_to_projects[client_name] = []
+                    client_name_to_projects[client_name].append(project_id)
 
+            self.client_name_to_projects = client_name_to_projects  # 追加
             logger.info(f"請求書データから {len(mapping)} 件のclient_nameマッピングを作成")
             return mapping
 
@@ -108,14 +114,70 @@ class MatchSuggestionConverter:
             
             # client_nameを取得
             client_name = self.client_mapping.get(invoice_id, 'Unknown')
+            # project_idが見つからない場合、client_nameから候補project_idを逆引き
+            project_id_candidates = []
+            if client_name == 'Unknown' and match.get('client_name'):
+                candidate_name = match.get('client_name')
+                project_id_candidates = self.client_name_to_projects.get(candidate_name, [])
+                if len(project_id_candidates) == 1:
+                    invoice_id = project_id_candidates[0]
+                    client_name = candidate_name
+                # 複数候補がある場合はすべて出力
+                elif len(project_id_candidates) > 1:
+                    for candidate_project_id in project_id_candidates:
+                        transaction_id = f"TXN_{payment_id}_{candidate_project_id}"
+                        unmatched_reason = []
+                        if status == "unmatched":
+                            if match_amount <= 0:
+                                unmatched_reason.append("金額が0以下")
+                            if client_name == "Unknown":
+                                unmatched_reason.append("クライアント名不明")
+                            if not candidate_project_id:
+                                unmatched_reason.append("プロジェクトID不明")
+                            if not payment_id:
+                                unmatched_reason.append("入金ID不明")
+                            unmatched_reason.append(f"同じ会社名のproject_id候補: {project_id_candidates}")
+                        comment = f"{match_type} - 信頼度: {confidence_score:.2f}"
+                        if status:
+                            comment += f" - ステータス: {status}"
+                        if unmatched_reason:
+                            comment += " - 理由: " + ",".join(unmatched_reason)
+                        csv_row = {
+                            'transaction_id': transaction_id,
+                            'project_id': candidate_project_id,
+                            'client_name': candidate_name,
+                            'amount': match_amount,
+                            'matched_amount': match_amount,
+                            'match_score': confidence_score,
+                            'comment': comment
+                        }
+                        csv_data.append(csv_row)
+                    continue  # このmatchについてはここでcontinue
             
             # transaction_idを生成
             transaction_id = f"TXN_{payment_id}_{invoice_id}"
+            
+            # unmatched理由を判定
+            unmatched_reason = []
+            if status == "unmatched":
+                if match_amount <= 0:
+                    unmatched_reason.append("金額が0以下")
+                if client_name == "Unknown":
+                    unmatched_reason.append("クライアント名不明")
+                if not invoice_id:
+                    unmatched_reason.append("プロジェクトID不明")
+                if not payment_id:
+                    unmatched_reason.append("入金ID不明")
+                if project_id_candidates:
+                    unmatched_reason.append(f"同じ会社名のproject_id候補: {project_id_candidates}")
+                # 他にも必要な条件があればここに追加
             
             # commentを生成
             comment = f"{match_type} - 信頼度: {confidence_score:.2f}"
             if status:
                 comment += f" - ステータス: {status}"
+            if unmatched_reason:
+                comment += " - 理由: " + ",".join(unmatched_reason)
             
             csv_row = {
                 'transaction_id': transaction_id,
